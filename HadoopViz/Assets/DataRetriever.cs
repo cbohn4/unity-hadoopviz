@@ -22,6 +22,8 @@ public class DataRetriever : MonoBehaviour
 	int xCord;
 	int zCord;
 
+	public bool useVR;
+
 	void Start ()
 	{
 		StartCoroutine (CreateServers ());
@@ -81,6 +83,9 @@ public class DataRetriever : MonoBehaviour
 			zCord++;
 			xCord = 0;
 		}
+		if (useVR && (xCord <= 11 && xCord >= 6)&&(zCord <= 10 && zCord >= 7)) {
+			UpdateCords ();
+		}
 	}
 
 	void SpawnServer(string serverName){
@@ -127,7 +132,9 @@ public class DataRetriever : MonoBehaviour
 				try {
 					string line = data.ReadLine ();
 					string[] dataIO = ParseData (line);
-					GameObject.Find (dataIO [1]).GetComponentInChildren<DropMovement> ().SendDrop (GameObject.Find (dataIO [2]).transform.FindChild ("Drops"));
+					if (GameObject.Find (dataIO [1]) != null && GameObject.Find (dataIO [2]) != null ) {
+						GameObject.Find (dataIO [1]).GetComponentInChildren<DropMovement> ().SendDrop (GameObject.Find (dataIO [2]).transform.FindChild ("Drops"));
+					}
 				}catch(Exception e){
 					UnityEngine.Debug.Log (e.ToString ());
 				}
@@ -144,10 +151,8 @@ public class DataRetriever : MonoBehaviour
 		string[] part = line.Split (new char[]{' '},4);
 		//clienttrace red1 red2 12341234
 		//UnityEngine.Debug.Log (part[0] + ", " + part[1] + ", " + part[2] + ", " + part[3]);
-		if(part[0].Equals("clienttrace")||part[0].Equals("recvblock")){
-			SpawnServer (part[1]);
-			SpawnServer (part[2]);
-		}
+		//SpawnServer (part[1]);
+		//SpawnServer (part[2]);
 		return part;
 	}
 
