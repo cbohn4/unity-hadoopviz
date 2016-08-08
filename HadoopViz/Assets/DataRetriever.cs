@@ -22,12 +22,21 @@ public class DataRetriever : MonoBehaviour
 	int xCord;
 	int zCord;
 
+	float mbps;
+
 	public bool useVR;
 
 	void Start ()
 	{
 		StartCoroutine (CreateServers ());
 		StartCoroutine (TCPconnectDrops (urlViz, portViz));
+		InvokeRepeating ("ResetMBPS",1,1);
+	}
+
+	void ResetMBPS(){
+		mbps = mbps/1000;
+		UnityEngine.Debug.Log (mbps + " mb/s");
+		mbps = 0;
 	}
 
 	/*
@@ -134,6 +143,7 @@ public class DataRetriever : MonoBehaviour
 					string[] dataIO = ParseData (line);
 					if (GameObject.Find (dataIO [1]) != null && GameObject.Find (dataIO [2]) != null ) {
 						GameObject.Find (dataIO [1]).GetComponentInChildren<DropMovement> ().SendDrop (GameObject.Find (dataIO [2]).transform.FindChild ("Drops"));
+						mbps += Int32.Parse(dataIO[3]);
 					}
 				}catch(Exception e){
 					UnityEngine.Debug.Log (e.ToString ());
