@@ -1,5 +1,6 @@
 ﻿
 using UnityEngine;
+using UnityEngine.UI;
 using System;
 using System.Collections;
 using System.Diagnostics;
@@ -26,6 +27,8 @@ public class DataRetriever : MonoBehaviour
 
 	public bool useVR;
 
+	public Text textMBPS;
+
 	void Start ()
 	{
 		StartCoroutine (CreateServers ());
@@ -35,7 +38,8 @@ public class DataRetriever : MonoBehaviour
 
 	void ResetMBPS(){
 		mbps = mbps/1000;
-		UnityEngine.Debug.Log (mbps + " mb/s");
+		textMBPS.text = Mathf.FloorToInt(mbps).ToString();
+		//UnityEngine.Debug.Log (mbps + " mb/s");
 		mbps = 0;
 	}
 
