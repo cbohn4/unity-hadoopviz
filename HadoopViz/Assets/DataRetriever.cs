@@ -37,7 +37,7 @@ public class DataRetriever : MonoBehaviour
 	}
 
 	void ResetMBPS(){
-		mbps = mbps/1000;
+		mbps = mbps/10000;
 		textMBPS.text = Mathf.FloorToInt(mbps).ToString();
 		//UnityEngine.Debug.Log (mbps + " mb/s");
 		mbps = 0;
@@ -147,6 +147,7 @@ public class DataRetriever : MonoBehaviour
 					string[] dataIO = ParseData (line);
 					if (GameObject.Find (dataIO [1]) != null && GameObject.Find (dataIO [2]) != null ) {
 						GameObject.Find (dataIO [1]).GetComponentInChildren<DropMovement> ().SendDrop (GameObject.Find (dataIO [2]).transform.FindChild ("Drops"));
+						GameObject.Find (dataIO [1]).GetComponent<ServerLoadColor>().IncColor();
 						mbps += Int32.Parse(dataIO[3]);
 					}
 				}catch(Exception e){
