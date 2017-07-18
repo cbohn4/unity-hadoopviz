@@ -146,7 +146,7 @@ public class DataRetriever : MonoBehaviour
 					string line = data.ReadLine ();
 					string[] dataIO = ParseData (line);
 					if (GameObject.Find (dataIO [1]) != null && GameObject.Find (dataIO [2]) != null ) {
-						GameObject.Find (dataIO [1]).GetComponentInChildren<DropMovement> ().SendDrop (GameObject.Find (dataIO [2]).transform.FindChild ("Drops"));
+						GameObject.Find (dataIO [1]).GetComponentInChildren<DropMovement> ().SendDrop (GameObject.Find (dataIO [2]).transform.Find ("Drops"));
 						GameObject.Find (dataIO [1]).GetComponent<ServerLoadColor>().IncColor();
 						mbps += Int32.Parse(dataIO[3]);
 					}
