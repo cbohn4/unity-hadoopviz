@@ -22,11 +22,13 @@ public class ResetAndGC : MonoBehaviour {
 		}
 	}
 
+	//reload the current scene
 	void ReloadScene(){
 		Scene current = SceneManager.GetActiveScene ();
 		SceneManager.LoadScene (current.name);
 	}
 
+	//Calls the GC to run
 	void GarbageCollect(){
 		Resources.UnloadUnusedAssets ();
 		System.GC.Collect ();

@@ -36,6 +36,7 @@ public class DataRetriever : MonoBehaviour
 		InvokeRepeating ("ResetMBPS",1,1);
 	}
 
+	//updates the data transfer rate to be displayed
 	void ResetMBPS(){
 		mbps = mbps/10000;
 		textMBPS.text = Mathf.FloorToInt(mbps).ToString();
@@ -56,6 +57,7 @@ public class DataRetriever : MonoBehaviour
 	}
 	*/
 
+	//uses the list of known servers to create the base population of server representation
 	IEnumerator CreateServers(){
 		string serverListText = File.ReadAllText ("serverNames.txt");
 		string[] serverNameArray = serverListText.Split ('\n');
@@ -65,6 +67,7 @@ public class DataRetriever : MonoBehaviour
 		}
 	}
 
+	//creates servers based off of the XML file from the fish visulization
 	IEnumerator CreateServersFromXML(){
 		//File.WriteAllText (fileNameRed, TCPconnectRed());
 
@@ -89,6 +92,7 @@ public class DataRetriever : MonoBehaviour
 		}
 	}
 
+	//function used to handle how long the rows and collums should be
 	void UpdateCords(){
 		if(xCord < 17){
 			xCord++;
@@ -101,6 +105,7 @@ public class DataRetriever : MonoBehaviour
 		}
 	}
 
+	//creates a server from prefab
 	void SpawnServer(string serverName){
 		if (GameObject.Find (serverName) == null) {
 			GameObject server = Instantiate (serverPrefab, new Vector3 (xCord * 0.6f, 0, zCord * 0.6f), Quaternion.identity) as GameObject;
@@ -109,6 +114,7 @@ public class DataRetriever : MonoBehaviour
 		}
 	}
 
+	//if you need the current RedXML file, this will return it as a string
 	string TCPconnectRed(){
 
 		TcpClient tcp = new TcpClient (AddressFamily.InterNetwork);
@@ -124,6 +130,7 @@ public class DataRetriever : MonoBehaviour
 		return output;
 	}
 
+	//gets the tcp for data transfers, and spawns corresponding drops
 	IEnumerator TCPconnectDrops (string url, int port){
 
 		TcpClient tcp = new TcpClient (AddressFamily.InterNetwork);

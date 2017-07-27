@@ -21,6 +21,7 @@ public class DropMovement : MonoBehaviour{
 		}
 	}*/
 
+	//create and launch the partical
 	public void SendDrop(Transform receiver){
 		float dist = Vector3.Distance (transform.position,receiver.position) / 2f;
 		if(dist != 0 && transform != receiver){

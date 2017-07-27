@@ -19,6 +19,7 @@ public class ServerSelector : MonoBehaviour {
 	int lineSize = 20;
 
 	void Update () {
+		//click on a server to show information about it
 		if(Input.GetMouseButtonDown(0)){
 			if(selectedServer != null){
 				selectedServer.GetComponent<ServerLoadColor> ().ToggleSelected (0);
@@ -47,7 +48,7 @@ public class ServerSelector : MonoBehaviour {
 
 	void OnGUI(){
 		if(showGUI){
-			//make gui follow server
+			//make the gui follow server
 			serverPosistion = Camera.main.WorldToScreenPoint(selectedServer.transform.position);
 
 			float x1 = serverPosistion.x;
@@ -65,7 +66,7 @@ public class ServerSelector : MonoBehaviour {
 	}
 
 	void GUIdata(int windowID){
-		//data to display
+		//sets the data to be shown by the gui
 		GUI.contentColor = selectedServer.GetComponent<ServerLoadColor> ().GetMatColor();
 		GUI.Label (new Rect(5,0,windowSizeX-10,lineSize), selectedServer.name);
 	}
