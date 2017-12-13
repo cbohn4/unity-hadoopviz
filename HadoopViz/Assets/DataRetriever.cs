@@ -12,6 +12,7 @@ using System.Net.Sockets;
 public class DataRetriever : MonoBehaviour
 {
 	public GameObject serverPrefab;
+	public GameObject gridPrefab;
 
 	string fileNameRed = "redHosts.xml";
 	string urlRed = "129.93.239.169";
@@ -105,12 +106,19 @@ public class DataRetriever : MonoBehaviour
 		}
 	}
 
+	int xGrid = 0;
 	//creates a server from prefab
 	void SpawnServer(string serverName){
 		if (GameObject.Find (serverName) == null) {
-			GameObject server = Instantiate (serverPrefab, new Vector3 (xCord * 0.6f, 0, zCord * 0.6f), Quaternion.identity) as GameObject;
-			server.name = serverName;
-			UpdateCords ();
+			if (serverName.Contains ("red-gridftp")) {
+				GameObject server = Instantiate (gridPrefab, new Vector3 (xGrid * 0.6f, 0, -1.2f), Quaternion.identity) as GameObject;
+				server.name = serverName;
+				xGrid++;
+			} else {
+				GameObject server = Instantiate (serverPrefab, new Vector3 (xCord * 0.6f, 0, zCord * 0.6f), Quaternion.identity) as GameObject;
+				server.name = serverName;
+				UpdateCords ();
+			}
 		}
 	}
 
