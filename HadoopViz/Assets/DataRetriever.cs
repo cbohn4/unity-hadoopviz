@@ -3,11 +3,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Xml;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 public class DataRetriever : MonoBehaviour
 {
@@ -34,12 +36,13 @@ public class DataRetriever : MonoBehaviour
 	{
 		StartCoroutine (CreateServers ());
 		StartCoroutine (TCPconnectDrops (urlViz, portViz));
-		InvokeRepeating ("ResetMBPS",1,1);
+		InvokeRepeating ("ResetMBPS",1,5);
 	}
 
 	//updates the data transfer rate to be displayed
 	void ResetMBPS(){
-		mbps = mbps/10000;
+		mbps = mbps/100000;
+		mbps = mbps/5;
 		textMBPS.text = Mathf.FloorToInt(mbps).ToString();
 		//UnityEngine.Debug.Log (mbps + " mb/s");
 		mbps = 0;
@@ -125,65 +128,81 @@ public class DataRetriever : MonoBehaviour
 	//if you need the current RedXML file, this will return it as a string
 	string TCPconnectRed(){
 
-		TcpClient tcp = new TcpClient (AddressFamily.InterNetwork);
-		tcp.Connect (IPAddress.Parse (urlRed), portRed);
+		TcpClient tcpR = new TcpClient (AddressFamily.InterNetwork);
+		tcpR.Connect (IPAddress.Parse (urlRed), portRed);
 
-		StreamReader data = new StreamReader (tcp.GetStream ());
+		StreamReader dataR = new StreamReader (tcpR.GetStream ());
 
-		string output = data.ReadToEnd ();
+		string output = dataR.ReadToEnd ();
 
-		data.Close ();
-		tcp.Close ();
+		dataR.Close ();
+		tcpR.Close ();
 
 		return output;
 	}
 
 	//gets the tcp for data transfers, and spawns corresponding drops
+	TcpClient tcp;
+	StreamReader data;
+	private static readonly Queue<string> queueOfInputs = new Queue<string>();
+
 	IEnumerator TCPconnectDrops (string url, int port){
 
-		TcpClient tcp = new TcpClient (AddressFamily.InterNetwork);
-		while (true) {
-			int numTimesFailedToConnect = 0;
-			while (!tcp.Connected) {
-				try {
-					tcp.Connect (IPAddress.Parse (url), port);
-				} catch (SocketException se) {
-					//File.AppendAllText("errorLog.txt", "\n" + se.ToString() + "\n");
-					numTimesFailedToConnect++;
-					UnityEngine.Debug.Log (se.ToString () + "\n Failed To Connect "+ numTimesFailedToConnect +" times.");
-				}
-				yield return new WaitForSeconds (10);
+		tcp = new TcpClient (AddressFamily.InterNetwork);
+		while (!tcp.Connected) {
+			try{
+				tcp.Connect (IPAddress.Parse (url), port);
+			}catch{
+				print("Failed to Connect to Hadoop.");
 			}
+			yield return new WaitForSeconds (10);
+		}
+		data = new StreamReader (tcp.GetStream ());
 
-			StreamReader data = new StreamReader (tcp.GetStream ());
-			while (data.EndOfStream == false) {
-				try {
-					string line = data.ReadLine ();
-					string[] dataIO = ParseData (line);
-					if (GameObject.Find (dataIO [1]) != null && GameObject.Find (dataIO [2]) != null ) {
-						GameObject.Find (dataIO [1]).GetComponentInChildren<DropMovement> ().SendDrop (GameObject.Find (dataIO [2]).transform.Find ("Drops"));
-						GameObject.Find (dataIO [1]).GetComponent<ServerLoadColor>().IncColor();
-						mbps += Int32.Parse(dataIO[3]);
-					}
-				}catch(Exception e){
-					UnityEngine.Debug.Log (e.ToString ());
-				}
-				yield return null;
+		var inputThread = new Thread (new ThreadStart(ReadIncomingData));
+		inputThread.Start ();
+	}
+
+	void Update(){
+		lock (queueOfInputs) {
+			while (queueOfInputs.Count > 0) {
+				string line = queueOfInputs.Dequeue();
+				StartCoroutine (UseData (line));
 			}
+		}	
+	}
 
-			data.Close ();
-			tcp.Close ();
-			yield return new WaitForSeconds (5);
+	public void Enqueue(string line) {
+		lock (queueOfInputs) {
+			queueOfInputs.Enqueue (line);
 		}
 	}
 
-	string[] ParseData(string line){
-		string[] part = line.Split (new char[]{' '},4);
-		//clienttrace red1 red2 12341234
-		//UnityEngine.Debug.Log (part[0] + ", " + part[1] + ", " + part[2] + ", " + part[3]);
-		//SpawnServer (part[1]);
-		//SpawnServer (part[2]);
-		return part;
+	void ReadIncomingData(){
+		while (true) {
+			string line = data.ReadLine ();
+			Enqueue (line);
+		}
+	}
+
+	IEnumerator UseData(string line){
+		string[] dataIO = line.Split (new char[]{' '},4);
+		if (GameObject.Find (dataIO [1]) != null && GameObject.Find (dataIO [2]) != null ) {
+			int loadSize = Int32.Parse(dataIO[3]);
+			mbps += Int32.Parse(dataIO[3]);
+			do{
+				GameObject.Find (dataIO [1]).GetComponentInChildren<DropMovement> ().SendDrop (GameObject.Find (dataIO [2]).transform.Find ("Drops"));
+				GameObject.Find (dataIO [1]).GetComponent<ServerLoadColor>().IncColor();
+				loadSize = loadSize - 10000000;
+				yield return null;//new WaitForSeconds(0.01f);
+			}while(loadSize > 10000000);
+		}
+	}
+
+	void OnDisable() {
+		data.Close();
+		tcp.GetStream().Close();
+		tcp.Close();
 	}
 
 }
