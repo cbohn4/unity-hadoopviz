@@ -144,7 +144,8 @@ public class DataRetriever : MonoBehaviour
 	//gets the tcp for data transfers, and spawns corresponding drops
 	TcpClient tcp;
 	StreamReader data;
-	private static readonly Queue<string> queueOfInputs = new Queue<string>();
+	//private static readonly Queue<string> queueOfInputs = new Queue<string>();
+	LockFreeQueue<string> queue = new LockFreeQueue<string>();
 
 	IEnumerator TCPconnectDrops (string url, int port){
 
@@ -164,22 +165,31 @@ public class DataRetriever : MonoBehaviour
 	}
 
 	void Update(){
-		lock (queueOfInputs) {
-			while (queueOfInputs.Count > 0) {
-				string line = queueOfInputs.Dequeue();
+		//lock (queueOfInputs) {
+			//while (queueOfInputs.Count > 0) {
+		bool next = false;
+		do {
+				//string line = queueOfInputs.Dequeue();
+				string line;
+				next = queue.Dequeue(out line);
+			if(next){
 				StartCoroutine (UseData (line));
 			}
-		}	
+		}
+		while(next);
+		//}	
 	}
 
 	public void Enqueue(string line) {
-		lock (queueOfInputs) {
-			queueOfInputs.Enqueue (line);
-		}
+		//lock (queueOfInputs) {
+			//queueOfInputs.Enqueue (line);
+		queue.Enqueue (line);
+		//}
 	}
 
+	bool ShouldExecute = true;
 	void ReadIncomingData(){
-		while (true) {
+		while (ShouldExecute) {
 			string line = data.ReadLine ();
 			Enqueue (line);
 		}
@@ -200,6 +210,7 @@ public class DataRetriever : MonoBehaviour
 	}
 
 	void OnDisable() {
+		ShouldExecute = false;
 		data.Close();
 		tcp.GetStream().Close();
 		tcp.Close();
